@@ -3,7 +3,7 @@ import os
 
 app = Flask(__name__)
 
-# Set the folder where you want to save received files
+# Set the folder where you want to save the files received from Rasberry Pi
 UPLOAD_FOLDER = 'C:/Users/Sujan/Downloads/received_files'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
