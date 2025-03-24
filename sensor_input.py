@@ -20,7 +20,7 @@ AUDIO_CHUNK = 512
 AUDIO_RATE = 48000
 AUDIO_CHANNELS = 1
 AUDIO_THRESHOLD = 25000  # Peak amplitude threshold for "loud noise"
-AUDIO_DEVICE_INDEX = 1   # Audio device index (for detection)
+AUDIO_DEVICE_INDEX = None   # Use Default Audio device index (for detection)
 
 # Motion detection
 MOTION_AREA_THRESHOLD = 8000  # Contour area threshold for motion
@@ -30,7 +30,7 @@ FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
 # Which ALSA device to use for ffmpeg (replace with your device if needed)
-FFMPEG_ALSA_DEVICE = "plughw:2,0"
+FFMPEG_ALSA_DEVICE = "default"
 
 # Motion detection pause flag
 motion_paused = False
