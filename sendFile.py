@@ -1,5 +1,10 @@
 import requests
 import os
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def send_file(file_path):
     """
@@ -11,17 +16,20 @@ def send_file(file_path):
 
     # Check if the file exists
     if not os.path.exists(file_path):
-        print(f"File {file_path} does not exist.")
+        logger.error(f"File {file_path} does not exist.")
         return
 
     # Open the file and send it via HTTP POST
-    with open(file_path, 'rb') as file:
-        response = requests.post(laptop_ip, files={'file': (file_name, file)})
-        if response.status_code == 200:
-            print(f"File {file_name} sent successfully!")
-        else:
-            print(f"Failed to send file {file_name}. Response: {response.text}")
+    try:
+        with open(file_path, 'rb') as file:
+            response = requests.post(laptop_ip, files={'file': (file_name, file)})
+            if response.status_code == 200:
+                logger.info(f"File {file_name} sent successfully!")
+            else:
+                logger.error(f"Failed to send file {file_name}. Response: {response.text}")
+    except Exception as e:
+        logger.error(f"Error sending file {file_name}: {str(e)}")
 
-# Send specific files one by one
-send_file("C:/Users/Sujan/Downloads/send_files/test.mp4")  # Replace with the correct file path
-send_file("C:/Users/Sujan/Downloads/send_files/test.json")  # Replace with the correct file path
+# Test with specific files
+send_file("C:/Users/Sujan/Downloads/send_files/test.mp4")
+send_file("C:/Users/Sujan/Downloads/send_files/test.json")
