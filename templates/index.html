@@ -17,7 +17,7 @@
           <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
             <div class="card video-card" data-video-src="{{ url_for('serve_video', filename=item.video) }}">
               {% if item.thumbnail %}
-                <img src="{{ url_for('serve_video', filename=item.thumbnail) }}" class="card-img-top" alt="Thumbnail">
+                <img src="{{ url_for('serve_thumbnail', filename=item.thumbnail) }}" class="card-img-top" alt="Thumbnail">
               {% else %}
                 <div class="card-img-top thumbnail"></div>
               {% endif %}
