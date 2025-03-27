@@ -67,30 +67,28 @@ def ensure_space():
         print(f"Deleting {oldest_file} to free space...")
         os.remove(oldest_file)
 
-def detect_loud_noise(stream, threshold=AUDIO_THRESHOLD):
-    """
-    Reads a chunk of audio from the PyAudio stream and checks for a
-    'loud noise' by looking at the peak amplitude in the chunk.
-    Returns True if peak amplitude > threshold, else False.
-    """
+def detect_loud_noise(stream, threshold, on_loud_detected=None):
     try:
         data = stream.read(AUDIO_CHUNK, exception_on_overflow=False)
     except OSError as e:
-        # If there's an overflow or other read error, treat as no noise
-        print(f"Audio read error: {e}")
-        return False
+        return False, 0
 
     if len(data) < 2:
-        # Not enough bytes to form one int16 sample
-        return False
+        return False, 0
 
     audio_data = np.frombuffer(data, dtype=np.int16)
-    if audio_data.size == 0:
-        return False
-
     peak_amplitude = np.max(np.abs(audio_data))
-    print(f"Peak Amplitude: {peak_amplitude} | Threshold: {threshold}")
-    return peak_amplitude > threshold
+    is_loud = peak_amplitude > threshold
+
+    # Trigger callback if set
+    if is_loud and callable(on_loud_detected):
+        try:
+            on_loud_detected(peak_amplitude)
+        except Exception as e:
+            print(f"[Error] Callback failed: {e}")
+
+
+    return is_loud, peak_amplitude
 
 def record_with_ffmpeg(duration=5):
     """
@@ -131,7 +129,7 @@ def record_with_ffmpeg(duration=5):
 # -----------------------------
 # MAIN LOOP
 # -----------------------------
-def main():
+def main(on_amplitude_callback=None):
     global motion_paused
 
     # Ensure output directory exists
@@ -196,7 +194,10 @@ def main():
             cv2.imshow("Motion Detection", frame1)
 
             # ---- AUDIO (LOUD NOISE) DETECTION ----
-            audio_detected = detect_loud_noise(audio_stream, AUDIO_THRESHOLD)
+            # audio_detected = detect_loud_noise(audio_stream, AUDIO_THRESHOLD)
+            audio_detected, peak_amplitude = detect_loud_noise(audio_stream, AUDIO_THRESHOLD, on_loud_detected=on_amplitude_callback)
+            # print(f"Peak Amplitude: {peak_amplitude} | Threshold: {AUDIO_THRESHOLD} | Pass to module")
+
 
             # ---- TRIGGER RECORDING ----
             if motion_detected or audio_detected:

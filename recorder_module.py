@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 from sensor_input import main as start_sensor  # Starts sensor input loop
 
 class RecorderModule:
+    def handle_amplitude(self, amp):
+        print(f"[Recorder module] Received amplitude: {amp}")
+        if amp > 24999:
+            print("[Recorder] Triggering recording!")
+
     def __init__(self, save_dir="/home/pi/recordings", max_storage_gb=5, ai_model_path="/home/pi/models/model.pt", max_file_age_days=7):
         self.save_dir = Path(save_dir)
         self.max_storage_bytes = max_storage_gb * (1024 ** 3)
@@ -99,7 +104,8 @@ if __name__ == "__main__":
     recorder = RecorderModule()
 
     import threading
-    sensor_thread = threading.Thread(target=start_sensor, daemon=True)
+    # sensor_thread = threading.Thread(target=start_sensor, daemon=True)
+    sensor_thread = threading.Thread(target=start_sensor, args=(recorder.handle_amplitude,), daemon=True)
     sensor_thread.start()
 
     recorder.poll_for_new_files()
