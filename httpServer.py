@@ -15,8 +15,8 @@ UPLOAD_FOLDER = 'videos'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Allowed file extensions
-ALLOWED_EXTENSIONS = {'.mp4', '.avi', '.mkv', '.mov','.json'}
+# Allowed video extensions
+ALLOWED_EXTENSIONS = {'.mp4', '.avi', '.mkv', '.mov'}
 
 # Check if file extension is allowed
 def allowed_file(filename):
