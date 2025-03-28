@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 from datetime import datetime, timedelta
 from sensor_input import main as start_sensor  # Starts sensor input loop
+from send import send_file  # Import the send_file function
 
 class RecorderModule:
     def handle_amplitude(self, amp):
@@ -50,6 +51,7 @@ class RecorderModule:
             print(f"[Inference] Running AI on {file_path} with model at {self.ai_model_path}")
             result = {"label": "example", "confidence": 0.95}  # Placeholder
             print(f"[Inference Result] {result}")
+            send_file(str(file_path))
             return result
         except Exception as e:
             print(f"[Error] Inference failed on {file_path}: {e}")
