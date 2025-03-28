@@ -2,7 +2,7 @@ import os
 import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
-from torch.utils.data import  DataLoader
+from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from custom_dataset import CustomDataset
@@ -25,16 +25,17 @@ transform = transforms.Compose([
 ])
 
 # Load data
-train_dataset = CustomDataset(TRAIN_SET_PATH, LABELS_PATH, transform)
+num_frames = 5  # Number of frames to extract from each video
+train_dataset = CustomDataset(TRAIN_SET_PATH, LABELS_PATH, transform, num_frames=num_frames)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
 # Model (MobileNetV2 for lightweight deployment)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = models.mobilenet_v2(pretrained=True)
 
-num_classes = len(ACTIVITIES)
+num_classes = 2
 print(f"Number of classes: {num_classes}")
-model = MultiTaskModel(model, num_classes)
+model = MultiTaskModel(model, num_frames=num_frames)
 model = model.to(device)
 
 # Loss & Optimizer

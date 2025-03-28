@@ -24,15 +24,16 @@ transform = transforms.Compose([
 ])
 
 # Load validation set
-val_dataset = CustomDataset(VAL_SET_PATH, LABELS_PATH, transform)
+num_frames = 5  # Number of frames to extract from each video
+val_dataset = CustomDataset(VAL_SET_PATH, LABELS_PATH, transform, num_frames=num_frames)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 # Model (MobileNetV2 for lightweight deployment)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = models.mobilenet_v2(pretrained=True)
 
-num_classes = len(ACTIVITIES)
-model = MultiTaskModel(model, num_classes)
+num_classes = 2
+model = MultiTaskModel(model, num_frames=num_frames)
 model.load_state_dict(torch.load(MODEL_PATH))
 model = model.to(device)
 model.eval()
