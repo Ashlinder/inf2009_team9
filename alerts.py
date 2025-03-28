@@ -3,22 +3,22 @@ import cv2
 import time
 import os
 import numpy as np
-import psutil  # For system monitoring
+import psutil
 
 LOG_FILE = "log.json"
 
-# Thresholds (Adjust as needed)
-LOW_BRIGHTNESS_THRESHOLD = 50
-LOW_CONTRAST_THRESHOLD = 20
-HIGH_NOISE_THRESHOLD = 10
-BLUR_THRESHOLD = 100
-HIGH_CPU_USAGE = 80  # % threshold
-HIGH_TEMP_THRESHOLD = 70  # °C threshold (for Raspberry Pi)
-HIGH_RAM_USAGE = 90  # % threshold
-HIGH_DISK_USAGE = 90  # % threshold
+# Raspberry Pi-Specific Thresholds
+LOW_BRIGHTNESS_THRESHOLD = 40  # Adjusted for Pi Camera
+LOW_CONTRAST_THRESHOLD = 15
+HIGH_NOISE_THRESHOLD = 8
+BLUR_THRESHOLD = 80
+HIGH_CPU_USAGE = 75  # Adjusted due to lower CPU power
+HIGH_TEMP_THRESHOLD = 65  # °C threshold for Raspberry Pi
+HIGH_RAM_USAGE = 85  # Lowered to avoid Pi crashes
+HIGH_DISK_USAGE = 85  # Adjusted for small SD card storage
 
 def get_video_warnings():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)  # Ensures compatibility with Pi Camera
     if not cap.isOpened():
         return ["Camera not accessible"]
 
@@ -69,11 +69,11 @@ def get_system_warnings():
     # 2️⃣ High CPU Temperature (For Raspberry Pi)
     try:
         with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
-            cpu_temp = int(f.read()) / 1000  # Convert from millidegree Celsius
+            cpu_temp = int(f.read().strip()) / 1000  # Convert from millidegree Celsius
         if cpu_temp > HIGH_TEMP_THRESHOLD:
-            warnings.append(f"High CPU temperature: {cpu_temp}°C")
+            warnings.append(f"High CPU temperature: {cpu_temp:.1f}°C")
     except FileNotFoundError:
-        pass  # Skip if temperature file is unavailable
+        warnings.append("CPU temperature monitoring not available")
 
     # 3️⃣ High RAM Usage
     ram_usage = psutil.virtual_memory().percent
@@ -98,21 +98,19 @@ def update_warnings():
         return  # No warnings, nothing to log
 
     # Read existing log data if available
+    logs = []
     if os.path.exists(LOG_FILE):
         with open(LOG_FILE, "r") as f:
             try:
                 logs = json.load(f)
             except json.JSONDecodeError:
-                logs = []
-    else:
-        logs = []
+                pass  # Ignore corrupted logs
 
     # Append new warning entry
     log_entry = {
         "Timestamp": timestamp,
         "Warnings": all_warnings
     }
-
     logs.append(log_entry)
 
     # Save updated log file
