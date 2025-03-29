@@ -50,20 +50,20 @@ Project Structure:
 ## Raspberry Pi Processing Module
 
 ## PC Model Training & Deployment Module
-📂 PC Model Training & Deployment Module  <br>
-├── 📂 DCSASS_Dataset - Contains raw data <br>
-├── split_dataset.py - Splits dataset into training, validation and testing sets <br>
-├── custom_dataset.py - Defines a custom dataset class for loading data  <br>
-├── multitask_model.py - Implements a multi-task learning model for activity detection   <br>
-├── train_model.py - Trains the AI model using the dataset   <br>
-├── activity_detection_model.pth - Saved trained model in PyTorch format   <br>
-├── training_log.txt - Logs the training progress and metrics   <br>
-├── evaluate_model.py - Evaluates the trained model on validation data  <br>
-├── evaluation_results.txt - Stores evaluation results such as accuracy and loss   <br>
-├── convert_onnx_and_quantize.py - Converts the trained model to ONNX and applies quantization for optimization   <br>
-├── model.onnx - AI model converted to ONNX format for lightweight deployment   <br>
-├── model_qunatized.onnx - Quantized ONNX model for improved efficiency   <br>
-└── inference.py - Runs inference on new video data using the trained model  <br>
+**📂 PC Model Training & Deployment Module**  <br>
+├── **📂 DCSASS_Dataset** - Contains raw data <br>
+├── **split_dataset.py** - Splits dataset into training, validation and testing sets <br>
+├── **custom_dataset.py** - Defines a custom dataset class for loading data  <br>
+├── **multitask_model.py** - Implements a multi-task learning model for activity detection   <br>
+├── **train_model.py** - Trains the AI model using the dataset   <br>
+├── **activity_detection_model.pth** - Saved trained model in PyTorch format   <br>
+├── **training_log.txt** - Logs the training progress and metrics   <br>
+├── **evaluate_model.py** - Evaluates the trained model on validation data  <br>
+├── **evaluation_results.txt** - Stores evaluation results such as accuracy and loss   <br>
+├── **convert_onnx_and_quantize.py** - Converts the trained model to ONNX and applies quantization for optimization   <br>
+├── **model.onnx** - AI model converted to ONNX format for lightweight deployment   <br>
+├── **model_qunatized.onnx** - Quantized ONNX model for improved efficiency   <br>
+└── **inference.py** - Runs inference on new video data using the trained model  <br>
 
 
 
