@@ -35,13 +35,17 @@ Software Requirements:
 5. NumPy
 6. psutil
 
-
-Project Structure
-
-The project is organized into the following directories:
-
+Project Structure:
 - static: contains static files, including CSS, JavaScript, and images
 - templates: contains HTML templates for the web interface
 - uploads: contains uploaded video files
 
 
+
+
+
+
+Future Development:
+1. Improve the accuracy of the object detection module using more advanced machine learning models and audio analysis
+3. Implement additional features, such as motion detection and facial recognition.
+4. Develop a mobile app for users to receive notifications and view video footage on-the-go.
