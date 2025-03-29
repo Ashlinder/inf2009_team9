@@ -65,7 +65,28 @@ Project Structure:
 ├── **model_qunatized.onnx** - Quantized ONNX model for improved efficiency   <br>
 └── **inference.py** - Runs inference on new video data using the trained model  <br>
 
+**Steps**
+1. Download Raw Data (https://drive.google.com/drive/folders/1--psd0P2rjJabOcuD-JOBLBS8lTvMXOA?usp=sharing)
+2. Execute the scripts below sequentially to generate model_quantize.onnx:  <br>
+   a. split_dataset.py  <br>
+   b. train_model.py  <br>
+   c. evaluate_model.py  <br>
+   d. convert_onnx_and_quantize.py  <br>
 
+**Dependencies** <br>
+Before running the scripts, ensure you have the following dependencies installed:  <br>
+- `pandas`
+- `sklearn`
+- `torch`
+- `torchvision`
+- `cv2`
+- `onnx`
+- `onnxruntime`
+
+**Test Model** <br>
+1. Run `inference.py` to launch the Gradio interface. <br>
+2. Upload a video or record using the webcam, then click submit. <br>
+3. The result will indicate if suspicious activity is detected. If detected, the category of suspicious activity (either Violence or Theft) and the probability will be shown. <br>
 
 ## Communication Module
 
