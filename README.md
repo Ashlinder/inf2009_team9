@@ -39,10 +39,35 @@ Project Structure:
 - static: contains static files, including CSS, JavaScript, and images
 - templates: contains HTML templates for the web interface
 - uploads: contains uploaded video files
+- [Sensor Input Module](#sensor-input-module)  
+- [Raspberry Pi Processing Module](#raspberry-pi-processing-module)  
+- [PC Model Training & Deployment Module](#pc-model-training--deployment-module)  
+- [Communication Module](#communication-module)  
+- [Dashboard Module](#dashboard-module)  
 
+## Sensor Input Module
 
+## Raspberry Pi Processing Module
 
+## PC Model Training & Deployment Module
+📂 PC Model Training & Deployment Module  <br>
+├── 📂 DCSASS_Dataset <br>
+├── split_dataset.py  <br>
+├── custom_dataset.py  <br>
+├── multitask_model.py  <br>
+├── train_model.py  <br>
+├── activity_detection_model.pth  <br>
+├── training_log.txt  <br>
+├── evaluate_model.py  <br>
+├── evaluation_results.txt  <br>
+├── convert_onnx_and_quantize.py  <br>
+├── model.onnx  <br>
+├── model_qunatized.onnx  <br>
+└── inference.py <br>
 
+## Communication Module
+
+## Dashboard Module
 
 
 Future Development:
