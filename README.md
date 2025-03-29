@@ -46,10 +46,10 @@ Project Structure:
 
 **Dependencies** <br>
 Before running the scripts, ensure you have the following dependencies installed:  <br>
-- `pyaudio'
+- `pyaudio`
 - `cv2`
-- 'numpy'
-- 'ffmpeg'
+- `numpy`
+- `ffmpeg`
 
   
 ## Raspberry Pi Processing Module
