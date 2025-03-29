@@ -15,3 +15,33 @@ To run, create a virtual environment, install Flask to run.
 2. `source venv/bin/activate`
 3. `pip3 install -r requirements.txt`
 4. `python3 httpServer.py` 
+
+
+
+Welcome to the Automated Suspicious Activity Detection for Small Businesses Project!
+
+This project is designed to help small businesses detect suspicious activity using a Raspberry Pi and a camera module. 
+In this guide, we will walk you through the steps to set up and run the project.
+
+Hardware Requirements:
+1. Raspberry Pi (with camera module)
+2. Laptop or server for data processing and storage
+
+Software Requirements:
+1. Python 3.x
+2. Flask
+3. FFmpeg
+4. OpenCV
+5. NumPy
+6. psutil
+
+
+Project Structure
+
+The project is organized into the following directories:
+
+- static: contains static files, including CSS, JavaScript, and images
+- templates: contains HTML templates for the web interface
+- uploads: contains uploaded video files
+
+
