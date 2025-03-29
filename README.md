@@ -27,6 +27,7 @@ Software Requirements:
 4. OpenCV
 5. NumPy
 6. psutil
+7. PyAudio
 
 Project Structure:
 - static: contains static files, including CSS, JavaScript, and images
@@ -39,8 +40,21 @@ Project Structure:
 - [Dashboard Module](#dashboard-module)  
 
 ## Sensor Input Module
+**Steps**
+1. Ensure a USB webcam with microphone is plugged into the Raspberry Pi.
+2. Ensure there is a output directory called '/home/pi/recordings' to store the recordings.
 
+**Dependencies** <br>
+Before running the scripts, ensure you have the following dependencies installed:  <br>
+- `pyaudio'
+- `cv2`
+- 'numpy'
+- 'ffmpeg'
+
+  
 ## Raspberry Pi Processing Module
+
+
 
 ## PC Model Training & Deployment Module
 **📂 PC Model Training & Deployment Module**  <br>
