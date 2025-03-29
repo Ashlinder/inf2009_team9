@@ -11,11 +11,11 @@ def send_model_to_pi(pi_host, pi_password, local_model_path="model_quantized.onn
         remote_model_path (str, optional): Destination path on the Raspberry Pi. Defaults to "/home/model_quantized.onnx".
     """
     try:
-        conn = Connection(host=pi_host, connect_kwargs={"password": pi_password})
+        conn = Connection(host=pi_host, user="ashlinder", connect_kwargs={"password": pi_password}) # Edit User
         conn.put(local_model_path, remote=remote_model_path)
         print("Quantized ONNX model sent to Raspberry Pi.")
     except Exception as e:
         print(f"Error: {e}")
 
-# Example usage:
+# Example usage (Edit):
 send_model_to_pi("172.20.10.6", "Ashlin0411")
