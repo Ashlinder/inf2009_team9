@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 from sensor_input import main as start_sensor  # Starts sensor input loop
 from sendFile import send_file  # Import the send_file function
 from inference import predict  # Import the predict function
+from alerts import get_system_warnings
 INFERENCE_LOG_FILE = "/home/admin/pi/inference_results.json"
+WARNING_JSON_DIR = "/home/admin/pi/"
 class RecorderModule:
     def handle_amplitude(self, amp):
         print(f"[Recorder module] Received amplitude: {amp}")
@@ -26,6 +28,10 @@ class RecorderModule:
         self.processed_files = set()
 
         self.save_dir.mkdir(parents=True, exist_ok=True)
+                # 🔹 Start the system warning monitor in a separate thread
+        self.warning_thread = threading.Thread(target=self.start_warning_monitor, daemon=True)
+        self.warning_thread.start()
+    
 
     def wait_for_file_stable(self, file_path, timeout=10):
         prev_size = -1
@@ -97,6 +103,28 @@ class RecorderModule:
 
         print(f"[Log] Inference result saved: {log_entry}")
 
+    def save_warnings_to_json(self):
+    
+        warnings = get_system_warnings()
+
+        # Ensure the directory exists
+        if not os.path.exists(WARNING_JSON_DIR):
+            os.makedirs(WARNING_JSON_DIR)
+
+        # Create JSON file with a timestamp
+        filename = os.path.join(WARNING_JSON_DIR, "system_warnings.json")
+    
+        with open(filename, "w") as f:
+            json.dump({"warnings": warnings}, f, indent=4)
+    
+        print(f"Warnings saved to {filename}")
+
+    def start_warning_monitor(self):
+        """Continuously checks system warnings and updates the JSON file."""
+        while True:
+            self.save_warnings_to_json()
+            time.sleep(30)  # Adjust interval as needed (30 seconds)
+
     def check_storage(self):
         total, used, free = shutil.disk_usage(self.save_dir)
         print(f"[Storage] Total: {total}, Used: {used}, Free: {free}")
@@ -151,6 +179,7 @@ if __name__ == "__main__":
     sensor_thread = threading.Thread(target=start_sensor, args=(recorder.handle_amplitude,), daemon=True)
     sensor_thread.start()
 
+    #This is to ensure it also runs on background and constantly poll for new files,can uncomment this and comment the below recorder.poll_for_new_files()
     #polling_thread = threading.Thread(target=recorder.poll_for_new_files, daemon=True)
     #polling_thread.start()
 
