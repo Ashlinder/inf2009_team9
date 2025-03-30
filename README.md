@@ -51,6 +51,7 @@ Project Structure:
 2. Ensure there is a output directory called '/home/pi/recordings' to store the recordings.
 
 **Sensor Test**
+
 This test verifies that the sensor input module correctly triggers video recording based on either audio input surpassing a defined amplitude threshold or visual motion detected through the camera.
 
 
@@ -66,10 +67,9 @@ However, once a sound is detected with an amplitude exceeding the threshold—su
 
 
 ![MotionDetected](https://github.com/user-attachments/assets/affd4690-69ee-4e7e-a141-788673cf195e)
+![finger](https://github.com/user-attachments/assets/0713b34e-675e-44bb-86d3-1fd16b4a3602)
 
 In addition to audio detection, the test also includes a visual motion event where a finger is moved in front of the camera. Even though the corresponding audio amplitude was well below the threshold (1,400 in this case), the system successfully identified the motion and initiated recording. This confirms that motion detection alone is sufficient to trigger the system, independent of audio input levels.
-
-![finger](https://github.com/user-attachments/assets/0713b34e-675e-44bb-86d3-1fd16b4a3602)
 
 This test case demonstrates the correct functionality of both detection mechanisms, ensuring that recording occurs only under the defined conditions, either through sound intensity or camera-detected motion.
 
