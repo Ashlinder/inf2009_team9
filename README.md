@@ -53,18 +53,24 @@ Project Structure:
 **Sensor Test**
 This test verifies that the sensor input module correctly triggers video recording based on either audio input surpassing a defined amplitude threshold or visual motion detected through the camera.
 
+
 ![AudioNotDetected](https://github.com/user-attachments/assets/0faceaf6-5854-4892-b4a9-814aadb60c9e)
+
 In this scenario, the system is set to continuously monitor ambient sound using a microphone, calculating peak amplitude in real time. The threshold is set to 25,000. The results confirm that when background audio remains below this threshold, no recording is triggered. 
+
 
 ![AudioDetectection](https://github.com/user-attachments/assets/5de5654c-0104-4e24-8efd-ac46cab0a4bf)
 ![savedAudioRecording](https://github.com/user-attachments/assets/bdca628d-4114-474c-8d98-3ed2624c7ddb)
 
 However, once a sound is detected with an amplitude exceeding the threshold—such as a loud clap or voice—the module triggers a recording session. FFmpeg is then invoked to record a 10-second video, which is saved to the specified output directory in .mp4 format.
 
+
 ![MotionDetected](https://github.com/user-attachments/assets/affd4690-69ee-4e7e-a141-788673cf195e)
+
 In addition to audio detection, the test also includes a visual motion event where a finger is moved in front of the camera. Even though the corresponding audio amplitude was well below the threshold (1,400 in this case), the system successfully identified the motion and initiated recording. This confirms that motion detection alone is sufficient to trigger the system, independent of audio input levels.
 
 ![finger](https://github.com/user-attachments/assets/0713b34e-675e-44bb-86d3-1fd16b4a3602)
+
 This test case demonstrates the correct functionality of both detection mechanisms, ensuring that recording occurs only under the defined conditions, either through sound intensity or camera-detected motion.
 
 
