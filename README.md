@@ -49,6 +49,15 @@ Before running the scripts, ensure you have the following dependencies installed
 - `cv2`
 - `numpy`
 - `ffmpeg`
+- `pandas`
+- `sklearn`
+- `torch`
+- `torchvision`
+- `cv2`
+- `onnx`
+- `onnxruntime`
+- `psutil`
+- `ffmpeg`
 
 ## Sensor Input Module
 
@@ -58,6 +67,10 @@ Before running the scripts, ensure you have the following dependencies installed
 2. Ensure there is a output directory called '/home/pi/recordings' to store the recordings.
 
 ## Raspberry Pi Processing Module
+
+**Automated detection and sending steps for Raspberry PI**
+
+1. Run Recorder_module.py on the raspberry pi using sudo on CMD,ensure all of the required modules and dependencies are installed and the ONNX model is present on a directory based on the code
 
 ## PC Model Training & Deployment Module
 
@@ -109,9 +122,7 @@ Before running the scripts, ensure you have the following dependencies installed
 
 - `flask`
 - `ffmpeg`
-- `onnxruntime`
-- `opencv`
-- `pyaudio`
+
 - **Steps**
 
 1. Open a terminal and navigate to the directory where the httpServer.py file is located.
@@ -119,10 +130,6 @@ Before running the scripts, ensure you have the following dependencies installed
 3. This will start the Flask server and make the web interface available.
 4. Run the sendFile.py
 5. Call the send_file function and provide the full file path as an argument.
-
-**Automated detection and sending steps for Raspberry PI**
-
-1. Run Recorder_module.py on the raspberry pi,ensure all of the required files and dependancies are installed
 
 Future Development:
 
