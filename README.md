@@ -96,7 +96,7 @@ The module handles the initialisation of other python files,handles logging of s
 
 ## PC Model Training & Deployment Module
 
-**📂 PC Model Training & Deployment Module** <br>
+**📂 PC Model Training & Deployment Module (pc_model_training.zip)** <br>
 ├── **📂 DCSASS_Dataset** - Contains raw data <br>
 ├── **split_dataset.py** - Splits dataset into training, validation and testing sets <br>
 ├── **custom_dataset.py** - Defines a custom dataset class for loading data <br>
@@ -110,6 +110,12 @@ The module handles the initialisation of other python files,handles logging of s
 ├── **model.onnx** - AI model converted to ONNX format for lightweight deployment <br>
 ├── **model_qunatized.onnx** - Quantized ONNX model for improved efficiency <br>
 └── **inference.py** - Runs inference on new video data using the trained model <br>
+
+**Key features of Model** <br>
+Base Model: Utilizes MobileNetV2 for efficient and lightweight processing. <br>
+Binary Classifier: Identifies whether an activity is suspicious. <br>
+Multi-class Classifier: Categorizes suspicious activities into Theft or Violence. <br>
+
 
 **Dependencies** <br>
 Before running the scripts, ensure you have the following dependencies installed: <br>
