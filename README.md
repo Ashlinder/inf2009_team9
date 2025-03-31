@@ -148,7 +148,7 @@ Before running the scripts, ensure you have the following dependencies installed
 1. Open a terminal and navigate to the directory where the httpServer.py file is located.
 2. Type python httpServer.py and press Enter to run the file.
 3. This will start the Flask server and make the web interface available.
-4. Run the sendFile.py
+4. Import send_file function from sendFile.py
 5. Call the send_file function and provide the full file path as an argument.
 
 Future Development:
