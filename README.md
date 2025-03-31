@@ -88,7 +88,9 @@ This test case demonstrates the correct functionality of both detection mechanis
 
 ## Raspberry Pi Processing Module
 
-**Automated detection and sending steps for Raspberry PI**
+The module handles the initialisation of other python files,handles logging of system warnings,generates JSON files for analysis and initiates sending of files to the flask server using sendFile.py
+
+**Steps**
 
 1. Run Recorder_module.py on the raspberry pi using sudo on CMD,ensure all of the required modules and dependencies are installed and the ONNX model is present on a directory based on the code
 
