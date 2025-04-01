@@ -1,188 +1,165 @@
-# File: modules/recorder_module.py
-#!/usr/bin/env python3
 import os
 import shutil
 import time
 import subprocess
 import threading
 import json
+import sys
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-from sensor_input import main as start_sensor  # Starts sensor input loop
-from sendFile import send_file  # Import the send_file function
-from inference import predict  # Import the predict function
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from sensor_input import main as start_sensor
+from sendFile import send_file
+from inference import predict
 from alerts import get_system_warnings
+
+# Suppress ALSA device errors
+os.environ["AUDIODEV"] = "null"
+sys.stderr = open(os.devnull, 'w')
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("recorder.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
 INFERENCE_LOG_FILE = "/home/admin/pi/inference_results.json"
 WARNING_JSON_DIR = "/home/admin/pi/"
+RETRY_LIMIT = 5
+RETRY_DELAY = 2  # seconds, exponential backoff applied
+
+class RecorderHandler(FileSystemEventHandler):
+    def __init__(self, recorder):
+        self.recorder = recorder
+
+    def on_closed(self, event):
+        if event.is_directory:
+            return
+        if event.src_path.endswith(".mp4"):
+            logging.info(f"[Watchdog] New file detected: {event.src_path}")
+            self.recorder.queue_file(Path(event.src_path))
+
 class RecorderModule:
+    def __init__(self, save_dir="/home/admin/pi/recordings", max_storage_gb=5, ai_model_path="/home/admin/pi/model_quantized.onnx", max_file_age_days=7):
+        self.script_start_time = datetime.now()
+        self.save_dir = Path(save_dir)
+        self.max_storage_bytes = max_storage_gb * (1024 ** 3)
+        self.ai_model_path = ai_model_path
+        self.max_file_age_days = max_file_age_days
+        self.processed_files = {}
+        self.pending_files = set()
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.start_watchdog()
+        self.new_file_event = threading.Event()
+        self.warning_thread = threading.Thread(target=self.start_warning_monitor, daemon=True)
+        self.warning_thread.start()
+        self.inference_thread = threading.Thread(target=self.process_pending_files, daemon=True)
+        self.inference_thread.start()
+
+    def start_watchdog(self):
+        event_handler = RecorderHandler(self)
+        observer = Observer()
+        observer.schedule(event_handler, str(self.save_dir), recursive=False)
+        observer.start()
+        logging.info("[Watchdog] Started monitoring file changes.")
+
+    #forgot to reimplement this,remove/comment out this and the function in sensor_thread if its not working
     def handle_amplitude(self, amp):
         print(f"[Recorder module] Received amplitude: {amp}")
         if amp > 24999:
             print("[Recorder] Triggering recording!")
 
-    def __init__(self, save_dir="/home/admin/pi/recordings", max_storage_gb=5, ai_model_path="/home/admin/pi/model_quantized.onnx", max_file_age_days=7):
-        self.save_dir = Path(save_dir)
-        self.max_storage_bytes = max_storage_gb * (1024 ** 3)
-        self.ai_model_path = ai_model_path
-        self.max_file_age_days = max_file_age_days
-        self.processed_files = set()
 
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-                # 🔹 Start the system warning monitor in a separate thread
-        self.warning_thread = threading.Thread(target=self.start_warning_monitor, daemon=True)
-        self.warning_thread.start()
-    
+    def is_valid_video(self, file_path):
+        try:
+            result = subprocess.run([
+                "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1", str(file_path)
+            ], capture_output=True, text=True)
+            return bool(result.stdout.strip())
+        except Exception as e:
+            logging.error(f"[Validation] Failed to verify video file: {file_path} - {e}")
+            return False
 
-    def wait_for_file_stable(self, file_path, timeout=10):
-        prev_size = -1
-        stable_counter = 0
-        start_time = time.time()
+    def queue_file(self, file_path):
+        if not self.is_valid_video(file_path):
+            logging.warning(f"[Validation] {file_path} is not a valid video file. Skipping.")
+            return
+        logging.info(f"[Queue] Adding {file_path} to pending queue.")
+        self.pending_files.add(file_path)
+        self.new_file_event.set()
 
-        while time.time() - start_time < timeout:
-            try:
-                current_size = file_path.stat().st_size
-            except FileNotFoundError:
-                return False
+    def process_pending_files(self):
+        while True:
+            self.new_file_event.wait()
+            while self.pending_files:
+                file_path = self.pending_files.pop()
+                self.process_new_file(file_path)
+            self.new_file_event.clear()
 
-            if current_size == prev_size:
-                stable_counter += 1
-                if stable_counter >= 2:
-                    print(f"[Stable] File ready: {file_path}")
-                    return True
-            else:
-                stable_counter = 0
-            prev_size = current_size
-            time.sleep(1)
-        print(f"[Timeout] File not stable in time: {file_path}")
-        return False
+    def process_new_file(self, file_path):
+        retries = 0
+        while retries <= RETRY_LIMIT:
+            if self.run_inference(file_path):
+                self.processed_files[file_path] = "Success"
+                logging.info(f"[Processed] {file_path}")
+                return
+            retries += 1
+            delay = RETRY_DELAY * (2 ** (retries - 1))
+            logging.warning(f"[Retry {retries}] {file_path} failed inference. Retrying in {delay} seconds.")
+            time.sleep(delay)
+        logging.error(f"[Skip] {file_path} failed inference too many times. Adding back to queue.")
+        self.queue_file(file_path)
 
     def run_inference(self, file_path):
         try:
-            print(f"[Inference] Running AI on {file_path} with model at {self.ai_model_path}")
-            result = predict(str(file_path))  # Run inference
-            # Save the result to inference_results.json
+            logging.info(f"[Inference] Running AI on {file_path} with model at {self.ai_model_path}")
+            result = predict(str(file_path))
+            if not result or "Error" in result:
+                logging.error(f"[Error] Inference failed for {file_path}")
+                return False
             self.log_inference_result(file_path, result)
-
-            print(f"[Inference Result] {result}")
-            send_file(str(file_path))  # Send the file
-            send_file(str("/home/admin/pi/inference_results.json"))
-            send_file(str("/home/admin/pi/log.json"))
-            return result
+            send_file(str(file_path))
+            return True
         except Exception as e:
-            print(f"[Error] Inference failed on {file_path}: {e}")
-            return None
-    
+            logging.error(f"[Error] Inference failed on {file_path}: {e}")
+            return False
+
     def log_inference_result(self, file_path, result):
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        # Ensure the JSON file exists before reading
-        if not os.path.exists(INFERENCE_LOG_FILE):
-            print(f"[Log] Creating new log file: {INFERENCE_LOG_FILE}")
-            with open(INFERENCE_LOG_FILE, "w") as f:
-                json.dump([], f)  # Initialize with an empty list
-
-        # Read existing results if available
         logs = []
         if os.path.exists(INFERENCE_LOG_FILE):
             with open(INFERENCE_LOG_FILE, "r") as f:
                 try:
                     logs = json.load(f)
                 except json.JSONDecodeError:
-                    pass  # Ignore corrupted logs
-
-        # Append new result
-        log_entry = {
-            "Timestamp": timestamp,
-            "File": str(file_path),
-            "Result": result
-        }
+                    pass
+        log_entry = {"Timestamp": timestamp, "File": str(file_path), "Result": result}
         logs.append(log_entry)
-
-        # Save updated log
         with open(INFERENCE_LOG_FILE, "w") as f:
             json.dump(logs, f, indent=4)
-
-        print(f"[Log] Inference result saved: {log_entry}")
+        logging.info(f"[Log] Inference result saved: {log_entry}")
 
     def save_warnings_to_json(self):
-    
         warnings = get_system_warnings()
-
-        # Ensure the directory exists
-        if not os.path.exists(WARNING_JSON_DIR):
-            os.makedirs(WARNING_JSON_DIR)
-
-        # Create JSON file with a timestamp
         filename = os.path.join(WARNING_JSON_DIR, "system_warnings.json")
-    
         with open(filename, "w") as f:
             json.dump({"warnings": warnings}, f, indent=4)
-    
-        print(f"Warnings saved to {filename}")
+        logging.info(f"Warnings saved to {filename}")
 
     def start_warning_monitor(self):
-        """Continuously checks system warnings and updates the JSON file."""
         while True:
             self.save_warnings_to_json()
-            time.sleep(30)  # Adjust interval as needed (30 seconds)
-
-    def check_storage(self):
-        total, used, free = shutil.disk_usage(self.save_dir)
-        print(f"[Storage] Total: {total}, Used: {used}, Free: {free}")
-        return free
-
-    def delete_old_recordings(self):
-        now = datetime.now()
-        age_limit = now - timedelta(days=self.max_file_age_days)
-        free_space = self.check_storage()
-
-        files = sorted(self.save_dir.glob("*.mp4"), key=lambda f: f.stat().st_ctime)
-        for file in files:
-            file_ctime = datetime.fromtimestamp(file.stat().st_ctime)
-            should_delete = False
-
-            if file_ctime < age_limit:
-                print(f"[Delete] File {file} is older than {self.max_file_age_days} days")
-                should_delete = True
-            elif free_space < self.max_storage_bytes:
-                print(f"[Delete] Free space below threshold, deleting {file}")
-                should_delete = True
-
-            if should_delete:
-                try:
-                    file.unlink()
-                    print(f"[Delete] Removed recording: {file}")
-                except Exception as e:
-                    print(f"[Error] Could not delete {file}: {e}")
-                free_space = self.check_storage()
-                if free_space > self.max_storage_bytes:
-                    break
-
-    def poll_for_new_files(self):
-        print("[Polling] Watching for new recordings...")
-        while True:
-            files = sorted(self.save_dir.glob("*.mp4"), key=lambda f: f.stat().st_ctime)
-            for file in files:
-                file_path_str = str(file)
-                if file_path_str not in self.processed_files:
-                    if self.wait_for_file_stable(file):
-                        self.run_inference(file)
-                        self.delete_old_recordings()
-                        self.processed_files.add(file_path_str)
-            time.sleep(2)
+            time.sleep(30)
 
 if __name__ == "__main__":
-    
     recorder = RecorderModule()
-    
-
-    # 🔹 Start sensor input in a thread
-    sensor_thread = threading.Thread(target=start_sensor, args=(recorder.handle_amplitude,), daemon=True)
+    sensor_thread = threading.Thread(target=start_sensor, args=(recorder.queue_file,handle_amplitude()), daemon=True)
     sensor_thread.start()
-
-    #This is to ensure it also runs on background and constantly poll for new files,can uncomment this and comment the below recorder.poll_for_new_files()
-    #polling_thread = threading.Thread(target=recorder.poll_for_new_files, daemon=True)
-    #polling_thread.start()
-
-    #while True:
-        #time.sleep(1)
-    recorder.poll_for_new_files()
+    while True:
+        time.sleep(1)
